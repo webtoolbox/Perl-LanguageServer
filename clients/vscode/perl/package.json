@@ -7,7 +7,7 @@
     "repository": "https://github.com/richterger/Perl-LanguageServer",
     "license": "SEE LICENSE IN LICENSE",
     "engines": {
-        "vscode": "^1.58.0"
+        "vscode": "^1.85.2"
     },
     "categories": [
         "Debuggers",

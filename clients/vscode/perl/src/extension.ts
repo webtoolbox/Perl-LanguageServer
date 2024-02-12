@@ -4,6 +4,7 @@
 import * as vscode from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient';
 import * as net from 'net';
+import { exec } from 'child_process';
 
 // ------------------------------------------------------------------------------
 //
@@ -321,6 +322,17 @@ export async function activate(context: vscode.ExtensionContext)
     console.log('cmd: ' + serverCmd + ' args: ' + serverArgs.join (' '));
 
     let debugArgs  = serverArgs.concat(["--debug"]) ;
+    const sshAgentResponse: string = await execPromise('eval `ssh-agent -s`; echo "SSHAGENT: $SSH_AGENT_PID $SSH_AUTH_SOCK"');
+    if (sshAgentResponse && /Agent pid /.test(sshAgentResponse)) {
+        let ssh: null|Array<string> = sshAgentResponse.match(/SSHAGENT: (.+)/);
+
+        if (ssh && typeof ssh[1] === 'string' && ssh[1].trim()) {
+            let [ sock, agent ] = ssh[1].split(" ");
+            env['SSH_AUTH_SOCK'] = sock;
+            env['SSH_AGENT_PID'] = agent;
+        }
+    }
+
     let serverOptions: ServerOptions = {
         run:   { command: serverCmd, args: serverArgs, options: { env: env } },
         debug: { command: serverCmd, args: debugArgs,  options: { env: env } },
@@ -348,3 +360,14 @@ export async function activate(context: vscode.ExtensionContext)
 //export function deactivate() {
 //}
 
+function execPromise(command: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        exec(command, (error, stdout: string, stderr) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(stdout);
+            }
+        });
+    });
+}
