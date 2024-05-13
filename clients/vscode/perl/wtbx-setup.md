@@ -11,6 +11,7 @@
 - **Ask to enter paraphrase:** do not enter any paraphrase, press enter to skip, same for confirm paraphrase
 - chmod 0600 `~/.ssh/<SERVER>.pub`
 - ssh-copy-id -i `~/.ssh/<SERVER>.pub` `<SSH_USERNAME>@<SERVER>.websitetoolbox.com`
+- eval `ssh-agent -s`
 - **Connect with key:** ssh -v -i `~/.ssh/<SERVER>.pub` `<SSH_USERNAME>@<SERVER>.websitetoolbox.com`
 - On asking for password, ask `Masihur Sir` to allow login with public key.
 
