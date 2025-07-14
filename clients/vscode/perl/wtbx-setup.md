@@ -9,10 +9,11 @@
 - ssh-keygen -t ed25519 -C "`<SSH_USERNAME>`"
 - **Ask to enter key name:** `<SERVER>`
 - **Ask to enter paraphrase:** do not enter any paraphrase, press enter to skip, same for confirm paraphrase
-- chmod 0600 `~/.ssh/<SERVER>.pub`
+- chmod 0600 `~/.ssh/<SERVER>`
+- chmod 0644 `~/.ssh/<SERVER>.pub`
 - ssh-copy-id -i `~/.ssh/<SERVER>.pub` `<SSH_USERNAME>@<SERVER>.websitetoolbox.com`
 - eval \``ssh-agent -s`\`
-- **Connect with key:** ssh -v -i `~/.ssh/<SERVER>.pub` `<SSH_USERNAME>@<SERVER>.websitetoolbox.com`
+- **Connect with key:** ssh -v -i `~/.ssh/<SERVER>` `<SSH_USERNAME>@<SERVER>.websitetoolbox.com`
 - On asking for password, ask `Masihur Sir` to allow login with public key.
 
 ## WTBX Perl Extension Setup Steps
@@ -30,7 +31,7 @@
         "perl.sshCmd": "ssh",
         "perl.sshArgs": [
             "-i",
-            "~/.ssh/<SERVER>.pub",
+            "~/.ssh/<SERVER>",
             "-A"
         ],
         "perl.perlCmd": "sudo -u www-data /etc/langServer.sh"
