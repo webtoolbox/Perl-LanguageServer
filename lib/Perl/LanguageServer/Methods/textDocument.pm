@@ -269,7 +269,9 @@ sub _get_symbol
     return if ($symbol -> {name} ne $name) ;
     #print STDERR "name=$name symbols = ", pp ($symbol), "\n" ;
     return if ($def_only && !exists $symbol -> {definition}) ;
-    my $line = $symbol -> {line} + 0 ;
+    my $line = exists $symbol -> {line}
+        ? $symbol -> {line} + 0
+        : ($symbol -> {range}{start}{line} // 0) ;
     push @$vars, { uri => $uri, range => { start => { line => $line, character => 0 }, end => { line => $line, character => 0 }}} ;
     }
 
@@ -285,19 +287,42 @@ sub _get_symbols
     my $name = $self -> get_symbol_from_doc ($workspace, $uri, $pos) ;
 
     my $symbols = $workspace -> symbols ;
+    my $files   = $workspace -> files ;
     #print STDERR "name=$name symbols = ", pp ($symbols), "\n" ;
-    my $line ;
     my @vars ;
+    my %searched_uris ;
 
     if ($name)
         {
-        foreach my $uri (keys %$symbols)
+        # Search background-indexed workspace symbols first
+        foreach my $furi (keys %$symbols)
             {
-            foreach my $symbol (@{$symbols->{$uri}})
+            $searched_uris{$furi} = 1 ;
+            foreach my $symbol (@{$symbols->{$furi}})
                 {
-                $self -> _get_symbol ($workspace, $req, $symbol, $name, $uri, $def_only, \@vars) ;
+                $self -> _get_symbol ($workspace, $req, $symbol, $name, $furi, $def_only, \@vars) ;
                 last if (@vars > 500) ;
                 }
+            last if (@vars > 500) ;
+            }
+
+        # Also search open files that may not yet be indexed (e.g. unsaved edits)
+        foreach my $furi (keys %$files)
+            {
+            next if ($searched_uris{$furi}) ;
+            my $file_vars = $files -> {$furi}{vars} ;
+            if (!$file_vars && $files -> {$furi}{text})
+                {
+                $file_vars = $workspace -> parse_perl_source ($furi, $files -> {$furi}{text}) ;
+                $files -> {$furi}{vars} = $file_vars ;
+                }
+            next if (!$file_vars) ;
+            foreach my $symbol (@$file_vars)
+                {
+                $self -> _get_symbol ($workspace, $req, $symbol, $name, $furi, $def_only, \@vars) ;
+                last if (@vars > 500) ;
+                }
+            last if (@vars > 500) ;
             }
         }
 

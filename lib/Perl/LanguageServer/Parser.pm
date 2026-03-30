@@ -176,10 +176,21 @@ sub parse_perl_source
                 }
             if ($name eq 'SemiColon')
                 {
+                if (exists $state{ns} && $state{module} && $state{is} eq 'package')
+                    {
+                    $package = join ('::', @{$state{ns}}) ;
+                    $top = \@vars ;
+                    push @$top,
+                        {
+                        name        => $package,
+                        kind        => SymbolKindModule,
+                        definition  => 1,
+                        } ;
+                    $add = $top -> [-1] ;
+                    $token -> {line} = $state{decl_line} if ($state{decl_line}) ;
+                    }
+                %state = () ;
                 $decl = undef ;
-                # continue does only work in switch statement, which is deprecated and was removed
-                # unclear, if this is still necessray?
-                #continue ;
                 }
             }
         elsif ($name eq 'LeftBracket')
@@ -218,10 +229,10 @@ sub parse_perl_source
                     }
                 my $src = $source[$token -> {line}-1] ;
                 my $i ;
-                if ($src && ($i = index($src, $func) >= 0))
+                if ($src && (($i = index($src, $func)) >= 0))
                     {
-                    $beginchar = $i + 1 ;
-                    $endchar   = $i + 1 + length ($func) ;
+                    $beginchar = $i ;
+                    $endchar   = $i + length ($func) ;
                     }
                 }
             $decl = undef ;
@@ -288,6 +299,7 @@ sub parse_perl_source
             {
             $state{is} = $token -> {data} ;
             $state{module} = 1 ;
+            $state{decl_line} = $token -> {line} ;
             }
         elsif ($name =~ /^(?:ShortHashDereference|ShortArrayDereference)$/)
             {

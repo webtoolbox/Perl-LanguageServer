@@ -164,6 +164,29 @@ sub _rpcnot_didChangeWorkspaceFolders
 
 # ---------------------------------------------------------------------------
 
+sub _collect_symbols
+    {
+    my ($self, $query, $uri, $symbols, $vars) = @_ ;
+
+    foreach my $symbol (@$symbols)
+        {
+        if ($symbol -> {name} =~ /$query/ && exists $symbol -> {definition})
+            {
+            my $line = exists $symbol -> {line}
+                ? $symbol -> {line} + 0
+                : ($symbol -> {range}{start}{line} // 0) ;
+            push @$vars, { %$symbol, location => { uri => $uri, range => { start => { line => $line, character => 0 }, end => { line => $line, character => 0 }}} } ;
+            }
+        if (exists $symbol -> {children} && @$vars <= 200)
+            {
+            $self -> _collect_symbols ($query, $uri, $symbol -> {children}, $vars) ;
+            }
+        last if (@$vars > 200) ;
+        }
+    }
+
+# ---------------------------------------------------------------------------
+
 sub _rpcreq_symbol
     {
     my ($self, $workspace, $req) = @_ ;
@@ -171,19 +194,12 @@ sub _rpcreq_symbol
     my $query = $req -> params -> {query} || '.' ;
     my $symbols = $workspace -> symbols ;
     #$self -> logger ("symbols = ", dump ($symbols), "\n") ;
-    my $line ;
     my @vars ;
 
     foreach my $uri (keys %$symbols)
         {
-        foreach my $symbol (@{$symbols->{$uri}})
-            {
-            next if ($symbol -> {name} !~ /$query/) ;
-            next if (!exists $symbol -> {definition}) ;
-            $line = $symbol -> {line} ;
-            push @vars, { %$symbol, location => { uri => $uri, range => { start => { line => $line, character => 0 }, end => { line => $line, character => 0 }}} } ;
-            last if (@vars > 200) ;
-            }
+        $self -> _collect_symbols ($query, $uri, $symbols -> {$uri}, \@vars) ;
+        last if (@vars > 200) ;
         }
 
     return \@vars ;
