@@ -161,6 +161,13 @@
                 }
             }
         },
+        "commands": [
+            {
+                "command": "perl.restartLanguageServer",
+                "title": "Restart Language Server",
+                "category": "Perl"
+            }
+        ],
         "breakpoints": [
             {
                 "language": "perl"

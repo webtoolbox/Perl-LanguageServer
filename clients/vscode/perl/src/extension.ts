@@ -349,11 +349,29 @@ export async function activate(context: vscode.ExtensionContext)
     } ;
 
     // Create the language client and start the client.
-    let disposable = new LanguageClient('perl', 'Perl Language Server', serverOptions, clientOptions).start();
+    let client = new LanguageClient('perl', 'Perl Language Server', serverOptions, clientOptions);
+    let clientDisposable = client.start();
+    context.subscriptions.push(clientDisposable);
 
-    // Push the disposable to the context's subscriptions so that the
-    // client can be deactivated on extension deactivation
-    context.subscriptions.push(disposable);
+    context.subscriptions.push(
+        vscode.commands.registerCommand('perl.restartLanguageServer', async () =>
+            {
+            await vscode.window.withProgress(
+                {
+                location: vscode.ProgressLocation.Notification,
+                title: 'Restarting Perl Language Server...',
+                cancellable: false
+                },
+                async () =>
+                    {
+                    await client.stop() ;
+                    clientDisposable = client.start() ;
+                    context.subscriptions.push(clientDisposable) ;
+                    }
+                ) ;
+            vscode.window.showInformationMessage('Perl Language Server restarted.') ;
+            })
+        ) ;
     }
 
 // this method is called when your extension is deactivated
