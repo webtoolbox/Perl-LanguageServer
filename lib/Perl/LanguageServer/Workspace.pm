@@ -117,6 +117,12 @@ has 'disable_cache' =>
     is  => 'rw',
     ) ;
 
+has 'index_lib_dirs' =>
+    (
+    isa => 'Maybe[Bool]',
+    is  => 'rw',
+    ) ;
+
 # ---------------------------------------------------------------------------
 
 sub logger

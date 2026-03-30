@@ -144,6 +144,11 @@
                     "default": false,
                     "description": "if true, the LanguageServer will not cache the result of parsing source files on disk, so it can be used within readonly directories"
                 },
+                "perl.indexLibDirs": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "if true, all directories listed in perl.perlInc are also indexed for symbols (Go to Definition across library paths). Disable for large system-wide include directories."
+                },
                 "perl.debugAdapterPort": {
                     "type": "integer",
                     "default": 13603,

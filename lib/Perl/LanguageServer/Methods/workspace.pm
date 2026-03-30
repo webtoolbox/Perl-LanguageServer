@@ -106,6 +106,7 @@ sub _rpcnot_didChangeConfiguration
 
     $workspace -> show_local_vars ($workspace -> config -> {showLocalVars}) ;
     $workspace -> disable_cache   ($workspace -> config -> {disableCache}) ;
+    $workspace -> index_lib_dirs  ($req -> params -> {settings}{perl}{indexLibDirs}) ;
 
     if ($req -> params -> {settings}{perl}{cacheDir})
         {

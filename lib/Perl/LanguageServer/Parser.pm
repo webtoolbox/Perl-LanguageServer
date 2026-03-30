@@ -599,6 +599,24 @@ sub background_parser
         cede ;
         }
 
+    if ($self -> index_lib_dirs && $self -> perlinc)
+        {
+        $server -> logger ("indexing perlInc dirs: ", dump ($self -> perlinc), "\n") ;
+        foreach my $dir (@{$self -> perlinc})
+            {
+            aio_stat ($dir) ;
+            if (-d _)
+                {
+                $self -> _parse_dir ($server, $dir, $self -> symbols, $stats) ;
+                cede ;
+                }
+            else
+                {
+                $server -> logger ("perlInc dir not found, skipping: $dir\n") ;
+                }
+            }
+        }
+
     my $cnt = keys %{$self -> symbols} ;
     $server -> logger ("initial parsing done, loaded $stats->{loaded} files, parsed $stats->{parsed} files, $cnt files\n") ;
 
